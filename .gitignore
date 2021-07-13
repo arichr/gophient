@@ -1,5 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+<<<<<<< HEAD
 *.py[cod]
 *$py.class
 
@@ -133,3 +134,5 @@ dmypy.json
 
 # etc.
 *.private.*
+=======
+>>>>>>> 3db8811 (Create .gitgnore)
