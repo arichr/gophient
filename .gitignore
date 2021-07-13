@@ -1,6 +1,7 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 <<<<<<< HEAD
+<<<<<<< HEAD
 *.py[cod]
 *$py.class
 
@@ -136,3 +137,9 @@ dmypy.json
 *.private.*
 =======
 >>>>>>> 3db8811 (Create .gitgnore)
+=======
+
+# Distribution folders
+dist/
+*.egg-info/
+>>>>>>> 8451a9b (Update .gitignore)
