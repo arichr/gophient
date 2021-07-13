@@ -218,7 +218,10 @@ class Gopher:
         :param encoding: Encoding of the server's responses.
         :return: bytearray or list of <Gopher.Item>s
         '''
-        resp = resp.decode(encoding)
+        try:
+            resp = resp.decode(encoding)
+        except UnicodeDecodeError:
+            return resp  # This is a binary file
         raw_items = resp.split(Gopher.EOL)
 
         items = []
