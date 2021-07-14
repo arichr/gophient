@@ -1,9 +1,12 @@
 # Gophient
 ![Downloads counter](https://shields.io/github/downloads/arichr/gophient/total?style=flat-square)
 ![Stars counter](https://shields.io/github/stars/arichr/gophient?style=flat-square)
+![Latest release version](https://img.shields.io/github/v/tag/arichr/gophient?label=latest&style=flat-square)
 ![License](https://shields.io/github/license/arichr/gophient?style=flat-square)
 
 Gophient is a library, that adds Gopher support for Python. You can browse the Gopherspace, follow links, download content by writing less code for your application.
+# Dependencies
+None! All library, that were used, are already a part of Python.
 # Examples
 ## Get weather from Floodgap Gopher
 ```python
