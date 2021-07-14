@@ -38,6 +38,3 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
-    - name: Test package functions
-      run: |
-        python tests/test_gopher.py
