@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
- 
-setup(name='gophient',
+
+setup(
+    name='gophient',
     version='0.2',
     url='https://github.com/arichr/gophient',
     license='MIT',

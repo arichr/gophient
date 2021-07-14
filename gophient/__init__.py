@@ -59,6 +59,7 @@ class GopherException:
             self.message = self.__doc__.strip()
             super().__init__(self.message)
 
+
 class Gopher:
     '''
     Client object. Have 3 constants:
@@ -149,44 +150,8 @@ class Gopher:
             :param encoding: Encoding of the server's responses. (Default: UTF-8)
             :return: bytearray or <Gopher.Item>s
             '''
-            if self.raw_type == 'i':
-                raise GopherException.TypeMismatch
-
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.settimeout(self.client.timeout)
-
-                if self.client.ssl_context:
-                    sock = self.client.ssl_context.wrap_socket(sock, server_hostname=self.host)
-
-                try:
-                    sock.connect((self.host, self.port))
-                except socket.gaierror:
-                    raise GopherException.UnavailableNetwork
-                except ssl.SSLError:
-                    raise GopherException.SSLNotSupported(self.host)
-                except (socket.timeout, ConnectionRefusedError):
-                    raise GopherException.UnreachableHost(self.host)
-
-                data = self.path[len('%2F'):]
-                if not self.url:
-                    data += Gopher.EOL
-                sock.sendall(bytes(data, encoding))
-
-                resp = bytearray()
-                while True:
-                    try:
-                        packet = sock.recv(1024)
-                    except socket.timeout:
-                        raise GopherException.UnreachableHost(host)
-                    if not packet:
-                        break
-                    resp.extend(packet)
-
-                if self.client.ssl_context:
-                    sock.close()
-
-            parsed = self.client.parse_resp(resp, encoding)
-            return parsed
+            resp_parsed = self.client.request(self.path, self.host, self.port, encoding)
+            return resp_parsed
 
         def __str__(self):
             if self.raw_type == 'i':
@@ -211,6 +176,72 @@ class Gopher:
                 repr(self.path),
                 repr(self.host),
                 repr(self.port))
+
+    def _create_socket(self, host: str):
+        '''
+        Create a socket without SSL.
+        :param host: Host IP or domain name.
+        :return: socket.socket
+        '''
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        return sock
+
+    def _create_secure_socket(self, host: str):
+        '''
+        Create a secure SSL socket.
+        :param host: Host IP or domain name.
+        :return: socket.socket
+        '''
+        sock = self._create_socket(host)
+        ssock = self.ssl_context.wrap_socket(sock, server_hostname=host)
+        return sock, ssock
+
+    def _prepare_data(self, data: str, encoding='utf-8', inputs={}):
+        if inputs:
+            data += '?'
+        for key in inputs:
+            data += '{key}={val} '.format(key=key, val=inputs[key])
+
+        urlenc_data = urllib.parse.quote(data, safe='')
+        return bytes(urlenc_data + Gopher.EOL, encoding)
+
+    def _send_request(self, sockets: tuple, data: str, host: str, port=70, encoding='utf-8', inputs={}):
+        '''
+        Make request to a server, but unlike other functions this one won't parse responses!
+        :param sockets: List of opened sockets
+        :param data: Data to be sended to the remote server. (Note: EOL adds automatically)
+        :param host: Host IP or domain name.
+        :param port: Port of the running server. (Default: 70)
+        :param encoding: Encoding of server's responses. (Default: UTF-8)
+        :param inputs: Dict of request input values. (Default: {})
+        :return: bytearray
+        '''
+        sock = sockets[-1]
+        try:
+            sock.connect((host, port))
+        except socket.gaierror:
+            raise GopherException.UnavailableNetwork
+        except ssl.SSLError:
+            raise GopherException.SSLNotSupported(host)
+        except (socket.timeout, ConnectionRefusedError):
+            raise GopherException.UnreachableHost(host)
+
+        urlenc_data = self._prepare_data(data, encoding, inputs)
+        sock.sendall(urlenc_data)
+
+        resp = bytearray()
+        packet = True  # Socket bytes container
+        while packet:
+            try:
+                packet = sock.recv(1024)
+            except socket.timeout:
+                raise GopherException.UnreachableHost(host)
+            resp.extend(packet)
+
+        for s in sockets:
+            s.close()
+
+        return resp
 
     def parse_resp(self, resp: bytearray, encoding='utf-8'):
         '''
@@ -254,53 +285,6 @@ class Gopher:
 
         return items
 
-    def _send_request(self, data: str, host: str, port=70, encoding='utf-8', inputs={}):
-        '''
-        Make request to a server, but unlike other functions this one won't parse responses!
-        :param data: Data to be sended to the remote server. (Note: EOL adds automatically)
-        :param host: Host IP or domain name.
-        :param port: Port of the running server. (Default: 70)
-        :param encoding: Encoding of server's responses. (Default: UTF-8)
-        :param inputs: Dict of request input values. (Default: {})
-        :return: bytearray
-        '''
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.settimeout(self.timeout)
-
-            if self.ssl_context:
-                sock = self.ssl_context.wrap_socket(sock, server_hostname=host)
-
-            try:
-                sock.connect((host, port))
-            except socket.gaierror:
-                raise GopherException.UnavailableNetwork
-            except ssl.SSLError:
-                raise GopherException.SSLNotSupported(host)
-            except (socket.timeout, ConnectionRefusedError):
-                raise GopherException.UnreachableHost(host)
-
-            if inputs:
-                data += '?'
-            for key in inputs:
-                data += '{key}={val} '.format(key=key, val=inputs[key])
-
-            urlenc_data = urllib.parse.quote(data, safe='')
-            sock.sendall(bytes(urlenc_data + Gopher.EOL, encoding))
-
-            resp = bytearray()
-            while True:
-                try:
-                    packet = sock.recv(1024)
-                except socket.timeout:
-                    raise GopherException.UnreachableHost(host)
-                if not packet:
-                    break
-                resp.extend(packet)
-
-            if self.ssl_context:
-                sock.close()
-        return resp
-
     def request(self, path: str, host: str, port=70, encoding='utf-8', inputs={}):
         '''
         Make request to a server.
@@ -311,7 +295,8 @@ class Gopher:
         :param inputs: Dict of request input values. (Default: {})
         :return: bytearray or list of <Gopher.Item>s
         '''
-        resp = self._send_request(path, host, port, encoding, inputs)
+        sockets = self._create_secure_socket(host) if self.ssl_context else (self._create_socket(host),)
+        resp = self._send_request(sockets, path, host, port, encoding, inputs)
         parsed = self.parse_resp(resp, encoding)
         return parsed
 
