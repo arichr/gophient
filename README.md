@@ -1,21 +1,22 @@
 # Python template
 ![repo style: chr](https://img.shields.io/badge/repo%20style-chr-blueviolet?logo=github&style=flat-square)
 
-Python template for various projects.
+Python template for various projects. It will be kept minimal as possible to cover all kinds of them.
 
 ## For which projects..?
 This template was built upon these statements:
  * You target Python `>=3.8, <4.0`
  * You use `google` style for docstrings ([pylint on PyPi](https://pypi.org/project/pylint/))
  * You use [flake8](https://pypi.org/project/flake8/) with [wemake-python-styleguide](https://pypi.org/project/wemake-python-styleguide/)
- * You commit LF line endings
- * You always document your code
- * 79 symbols per line is enough for you
+ * You commit LF line endings (see [.pylintrc](https://github.com/arichr/python-template/blob/main/.pylintrc#L28) and [.gitattributes](https://github.com/arichr/python-template/blob/main/.gitattributes))
+ * You always document your code (see [.pylintrc](https://github.com/arichr/python-template/blob/main/.pylintrc#L23))
+ * 79 symbols per line is enough for you (see [.pylintrc](https://github.com/arichr/python-template/blob/main/.pylintrc#L34))
 
 ## What should I do next?
 I think, you should:
  * Add a license
- * Initialize Git
+ * Initialize Git on your local machine
+ * Make a great README
  * Initialize [poetry](https://pypi.org/project/poetry/)
  * Use [codecov](https://pypi.org/project/codecov/)
 
