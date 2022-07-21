@@ -1,7 +1,9 @@
 # Python template
 ![repo style: chr](https://img.shields.io/badge/repo%20style-chr-blueviolet?logo=github&style=flat-square)
 
-Python template for various projects. It will be kept minimal as possible to cover all kinds of them.
+Python template for various projects.
+
+This branch (`minimal`) is kept minimal as possible. To stay updated with my latest changes use the `arichr` branch.
 
 ## For which projects..?
 This template was built upon these statements:
