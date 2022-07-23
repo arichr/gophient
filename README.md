@@ -1,38 +1,45 @@
 # Gophient
+![repo style: chr](https://img.shields.io/badge/repo%20style-chr-blueviolet?logo=github&style=flat-square)
 ![Downloads counter](https://shields.io/github/downloads/arichr/gophient/total?style=flat-square)
 ![Stars counter](https://shields.io/github/stars/arichr/gophient?style=flat-square)
-![Latest release version](https://img.shields.io/github/v/tag/arichr/gophient?label=latest&style=flat-square)
 ![License](https://shields.io/github/license/arichr/gophient?style=flat-square)
 
-Gophient is a library, that adds Gopher support for Python. You can browse the Gopherspace, follow links, download content by writing less code for your application.
-# Dependencies
-None! All library, that were used, are already a part of Python.
-# Examples
-## Get weather from Floodgap Gopher
+Gophient is a library for connecting to Gopher servers. By using it you can:
+ * Browse the Gopherspace
+ * Follow links
+ * Download content
+
+## Features
+ * Light
+ * Easy to use
+ * No dependecies
+
+## Examples
+### Get weather from Floodgap
 ```python
 import gophient
 
 client = gophient.Gopher()
-weather = client.request('groundhog/ws', 'gopher.floodgap.com')
+weather = client.request('gopher.floodgap.com', 'groundhog/ws')
 print(weather)
 ```
-## Search by using Veronica
+### Search by Veronica
 ```python
 import gophient
 
 client = gophient.Gopher()
-results = client.request('v2/vs', 'gopher.floodgap.com', 
-  inputs={'q': 'plan 9'})
+results = client.request('gopher.floodgap.com', 'v2/vs', query='plan 9')
 print(results)
 ```
-## Download files from Gopher
+### Download files
 ```python
 import gophient
 
 client = gophient.Gopher()
-apk = client.request('overbite/files/OverbiteAndroid025.apk', 'gopher.floodgap.com')
+apk = client.request('gopher.floodgap.com', 'overbite/files/OverbiteAndroid025.apk')
 with open('app.apk', 'wb') as apk_file:
   apk_file.write(apk)
 ```
-# License
+
+## License
 Licensed by MIT.
