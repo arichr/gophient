@@ -1,73 +1,41 @@
-import ssl
+"""`pytest` testcases."""
+import gophient
+
 from unittest import TestCase
-from gophient import Gopher, GopherException
 
 
 class GopherTest(TestCase):
-    def runTest(self):
-        print('Connection test')
-        self.test_connection()
-        print('Following links test')
-        self.test_follow_links()
-        print('Veronica test')
-        self.test_veronica()
-        print('Raw file (APK) download test')
-        self.test_raw_file_download()
+    """Testcase for `gophient`."""
 
-    def test_connection(self):
-        client = Gopher()
+    def test_connectivity(self):
+        """Test connectivity to servers."""
+        client = gophient.Gopher()
+        resp = client.request('gopher.floodgap.com')
+        self.assertTrue(resp)
 
-        host = 'gopher.floodgap.com'
-        resp = client.get_root(host)
+    def test_link_follow(self):
+        """Test link following."""
+        client = gophient.Gopher()
+        resp = client.request('gopher.floodgap.com')
+        # resp[0] may be an informational message.
+        # But we are merging them, so resp[1] is always something else.
+        resp = resp[1].follow()
+        self.assertTrue(resp)
 
-        self.assertEqual(list, type(resp))
+    def test_file_download(self):
+        """Test file download."""
+        client = gophient.Gopher()
+        resp = client.request('gopher.floodgap.com', 'proxy')
+        self.assertTrue(type(resp), bytearray)
 
-    def test_follow_links(self):
-        client = Gopher()
+    def test_items_type(self):
+        """Test items type."""
+        client = gophient.Gopher()
+        resp = client.request('gopher.floodgap.com')
+        self.assertEqual(resp[0].pretty_type, 'Informational message')
 
-        host = 'gopher.quux.org'
-        root_resp = client.get_root(host)
-
-        # We combine informational messages at the start,
-        # so the second element is not a message for sure.
-        item = root_resp[1]
-        item_resp = item.follow()
-
-        self.assertEqual(True, (root_resp != item_resp))
-
-    def test_veronica(self):
-        # Veronica is a search engine in Gopher
-        client = Gopher()
-
-        host = 'gopher.floodgap.com'
-        resp = client.request('/v2/vs', host, inputs={'q': 'plan 9'})
-
-        stmt1 = list == type(resp)
-        stmt2 = len(resp) > 1
-
-        self.assertEqual(True, (stmt1 and stmt2))
-
-    def test_raw_file_download(self):
-        client = Gopher()
-
-        apk = client.request('overbite/files/OverbiteAndroid025.apk', 'gopher.floodgap.com')
-        try:
-            apk.decode('utf-8')
-            error = None
-        except UnicodeDecodeError as e:
-            error = e
-
-        self.assertEqual(UnicodeDecodeError, type(error))
-
-    def test_fail_ssl_connection(self):
-        client = Gopher()
-        client.ssl_context = ssl.create_default_context()
-
-        try:
-            host = 'gopher.rp.spb.su'
-            client.get_root(host)
-            error = None
-        except GopherException.SSLNotSupported as e:
-            error = e
-
-        self.assertEqual(GopherException.SSLNotSupported, type(error))
+    def test_veronica_search(self):
+        """Test Veronica search."""
+        client = gophient.Gopher()
+        resp = client.request('gopher.floodgap.com', 'v2/vs', query='cat')
+        self.assertIn('?cat forward=', resp[-1].url)
