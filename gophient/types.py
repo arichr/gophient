@@ -1,26 +1,27 @@
 """gophient.types - Types for gophient."""
+from __future__ import annotations
 import socket
 import urllib.parse
-from typing import ByteString
+from typing import ByteString, Union
 from dataclasses import dataclass
 
-from gophient import const
+from gophient import const, exc
 
 
 @dataclass
 class Item:
     """Line of a server response."""
 
-    _client: object = None
+    _client: 'Gopher' = None
     raw_type: str = ''
     pretty_type: str = ''
     desc: str = ''
-    url: str = ''
+    path: str = ''
     host: str = ''
     port: int = 70
 
     @classmethod
-    def parse(cls, client: object, raw: ByteString, encoding: str = 'utf-8') -> object | None:
+    def parse(cls, client: Item, raw: ByteString, encoding: str = 'utf-8') -> Union[Item, None]:
         """Parse a raw `ByteString`.
 
         Args:
@@ -29,7 +30,7 @@ class Item:
             encoding (str): Server encoding
 
         Returns:
-            Item | None
+            Union[Item, None]
         """
         if raw in (b'.', b''):
             return None  # Optional part of the specification
@@ -50,12 +51,12 @@ class Item:
             raw_type=raw[0],
             pretty_type=const.TYPES.get(raw[0], 'Unknown'),
             desc=parts[0],
-            url=parts[1],
+            path=parts[1],
             host=parts[2],
             port=int(parts[3]),
         )
 
-    def merge_messages(self, item: object, encoding: str = 'utf-8') -> None:
+    def merge_messages(self, item: Item, encoding: str = 'utf-8') -> None:
         """Merge two informational messages.
 
         Args:
@@ -65,19 +66,19 @@ class Item:
         if self.raw_type == 'i' and item.raw_type == 'i':
             self.desc += const.EOL.decode(encoding) + item.desc
         else:
-            raise ...  # TODO:
+            raise exc.TypeMismatch(item.pretty_type, self.pretty_type)
 
 
-    def follow(self, encoding: str = 'utf-8') -> list[object] | list | ByteString:
+    def follow(self, encoding: str = 'utf-8') -> Union[list[Item], list, ByteString]:
         """Follow the link.
 
         Args:
             encoding (str): Request encoding
 
         Returns:
-            list[Item] | list | ByteString
+            Union[list[Item], list, ByteString]
         """
-        return self._client.request(self.host, self.url, self.port, encoding)
+        return self._client.request((self.host, self.path), self.port, encoding)
 
 
     def __str__(self) -> str:
@@ -88,13 +89,14 @@ class Item:
         """
         if self.raw_type == 'i':
             return self.desc
-        elif self.raw_type == 'ꬰ':
+
+        if self.raw_type == 'ꬰ':
             return 'File'
-        else:
-            return (
-                f'{self.desc} ({self.pretty_type}) - '
-                f'{self.url} on {self.host}:{self.port}'
-            )
+
+        return (
+            f'{self.desc} ({self.pretty_type}) - '
+            f'{self.path} on {self.host}:{self.port}'
+        )
 
 
 class Gopher:
@@ -118,15 +120,15 @@ class Gopher:
 
     def _prepare_payload(
         self,
-        url: str,
-        query: str | ByteString | None = None,
+        path: str,
+        query: Union[str, ByteString, None] = None,
         encoding: str = 'utf-8',
     ) -> bytes:
         """Prepare a payload.
 
         Args:
-            url (str): URL
-            query (str | ByteString | None): Query
+            path (str): Path
+            query (Union[str, ByteString, None]): Query
             encoding (str): encoding
 
         Returns:
@@ -137,10 +139,10 @@ class Gopher:
         elif query is None:
             query = b''
 
-        url = bytes(url, encoding)
-        return b''.join((url, b'?', query, const.EOL))
+        path = bytes(path, encoding)
+        return b''.join((path, b'?', query, const.EOL))
 
-    def _parse_response(self, resp: ByteString, encoding: str = 'utf-8') -> list[Item] | list | ByteString:
+    def parse_response(self, resp: ByteString, encoding: str = 'utf-8') -> Union[list[Item], list, ByteString]:
         """Parse the server response.
 
         Args:
@@ -148,47 +150,53 @@ class Gopher:
             encoding (str): Server encoding
 
         Returns:
-            list[Item] | list | ByteString
+            Union[list[Item], list, ByteString]
         """
         pretty_resp = []
         for item in resp.split(const.EOL):
             item = Item.parse(self, item, encoding)
             if not item:
                 continue
-            elif item.raw_type == 'ꬰ':
+
+            if item.raw_type == 'ꬰ':
                 return resp
-            elif item.raw_type == 'i' and pretty_resp:
+
+            if item.raw_type == 'i' and pretty_resp:
                 if pretty_resp[-1].raw_type == 'i':
                     pretty_resp[-1].merge_messages(item, encoding)
                     continue
+
             pretty_resp.append(item)
 
         return pretty_resp
 
     def request(
         self,
-        host: str,
-        url: str = '/',
+        url: tuple[str, str],
         port: int = 70,
-        query: str | ByteString | None = None,
+        query: Union[str, ByteString, None] = None,
         encoding: str = 'utf-8',
-    ) -> list[Item] | list | ByteString:
+    ) -> Union[list[Item], list, ByteString]:
         """Request an address.
 
         Args:
-            host (str): Host
-            url (str): URL
+            url (tuple[str, str]): Tuple of a host and a path
             port (int): Port
-            query (str | ByteString | None): Query
+            query (Union[str, ByteString, None]): Query
 
         Returns:
-            list[Item] | list | ByteString
+            Union[list[Item], list, ByteString]
         """
+        if len(url) > 1:
+            host, path = url
+        else:
+            host, path = url[0], '/'
+
         sock = self._open_socket()
         with sock:
             socket.timeout(self.timeout)
             sock.connect((host, port))
-            payload = self._prepare_payload(url, query, encoding)
+            payload = self._prepare_payload(path, query, encoding)
             sock.sendall(payload)
 
             resp = bytearray()
@@ -197,4 +205,4 @@ class Gopher:
                 packet = sock.recv(1024)
                 resp.extend(packet)
 
-        return self._parse_response(resp)
+        return self.parse_response(resp)

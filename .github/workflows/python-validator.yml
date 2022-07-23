@@ -3,12 +3,12 @@ name: Python validator (main/dev)
 on:
   push:
     branches:
-      - 'main'
-      - 'dev'
+      - '*'
+  pull_request:
+      types: [opened, reopened, review_requested]
 
 jobs:
   test:
-
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -47,7 +47,7 @@ jobs:
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 . --count --statistics
 
-      - name: Linting (pylint)
+      - name: Linting gophient (pylint)
         run: |
           source .venv/bin/activate
           pylint gophient
@@ -56,3 +56,44 @@ jobs:
         run: |
           source .venv/bin/activate
           pytest
+
+      - name: Linting tests (pylint)
+        run: |
+          source .venv/bin/activate
+          pylint tests
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.8"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v2
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Build a package
+        run: |
+          source .venv/bin/activate
+          poetry build
+
+      - name: Publish as an artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Wheel (Python 3.8)
+          path: dist/gophient-*-py3-none-any.whl
