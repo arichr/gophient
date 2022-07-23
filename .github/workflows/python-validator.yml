@@ -1,11 +1,9 @@
-name: Python validator (main/dev)
+name: Linting & building
 
 on:
   push:
     branches:
-      - '*'
-  pull_request:
-      types: [opened, reopened, review_requested]
+     - '**'
 
 jobs:
   test:
