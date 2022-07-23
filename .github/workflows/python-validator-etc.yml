@@ -1,8 +1,12 @@
-name: py_validator
+name: Python validator
 
 on:
-  - push
-  - pull_request
+  push:
+    branches-ignore:
+      - 'main'
+      - 'dev'
+  pull_request:
+    types: [opened, reopened, review_requested]
 
 jobs:
   test:

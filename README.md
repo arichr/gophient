@@ -1,8 +1,8 @@
 # Gophient
-![repo style: chr](https://img.shields.io/badge/repo%20style-chr-blueviolet?logo=github&style=flat-square)
+[![repo style: chr](https://img.shields.io/badge/repo%20style-chr-blueviolet?logo=github&style=flat-square)](https://github.com/arichr/python-template)
+![License](https://shields.io/github/license/arichr/gophient?style=flat-square)
 ![Downloads counter](https://shields.io/github/downloads/arichr/gophient/total?style=flat-square)
 ![Stars counter](https://shields.io/github/stars/arichr/gophient?style=flat-square)
-![License](https://shields.io/github/license/arichr/gophient?style=flat-square)
 
 Gophient is a library for connecting to Gopher servers. By using it you can:
  * Browse the Gopherspace
