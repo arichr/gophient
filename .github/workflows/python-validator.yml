@@ -1,11 +1,6 @@
 name: Python validator (main/dev)
 
-on:
-  push:
-    branches:
-      - '*'
-  pull_request:
-      types: [opened, reopened, review_requested]
+on: [push]
 
 jobs:
   test:
