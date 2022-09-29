@@ -1,9 +1,10 @@
 """gophient.types - Types for gophient."""
 from __future__ import annotations
+
 import socket
 import urllib.parse
-from typing import ByteString, Union
 from dataclasses import dataclass
+from typing import ByteString, Union
 
 from gophient import const, exc
 
@@ -21,7 +22,7 @@ class Item:
     port: int = 70
 
     @classmethod
-    def parse(cls, client: Item, raw: ByteString, encoding: str = 'utf-8') -> Union[Item, None]:
+    def parse(cls, client: Gopher, raw: ByteString, encoding: str = 'utf-8') -> Union[Item, None]:
         """Parse a raw `ByteString`.
 
         Args:
@@ -39,8 +40,8 @@ class Item:
             raw = raw.decode(encoding)
             parts = raw[1:].split(const.SEPARATOR)
             if len(parts) < 4:
-                raise ValueError('Broken response or a file.')
-        except (UnicodeDecodeError, ValueError):
+                raise ValueError('The server returned a file or a broken response.')
+        except ValueError:
             return cls(
                 raw_type='ꬰ',  # Broken type to distinguish "unparsable" items
                 pretty_type=const.TYPES.get('ꬰ', 'Unknown'),
@@ -62,12 +63,14 @@ class Item:
         Args:
             item (Item): Item
             encoding (str): Encoding for CRLF sequence
+
+        Raises:
+            TypeMismatchError: Can't merge items with wrong types
         """
         if self.raw_type == 'i' and item.raw_type == 'i':
             self.desc += const.EOL.decode(encoding) + item.desc
         else:
-            raise exc.TypeMismatch(item.pretty_type, self.pretty_type)
-
+            raise exc.TypeMismatchError(item.pretty_type, self.pretty_type)
 
     def follow(self, encoding: str = 'utf-8') -> Union[list[Item], list, ByteString]:
         """Follow the link.
@@ -78,8 +81,7 @@ class Item:
         Returns:
             Union[list[Item], list, ByteString]
         """
-        return self._client.request((self.host, self.path), self.port, encoding)
-
+        return self._client.request(self.host, self.path, self.port, encoding)
 
     def __str__(self) -> str:
         """Return a string representation of the Item.
@@ -102,13 +104,15 @@ class Item:
 class Gopher:
     """Class for Gopher client."""
 
-    def __init__(self, timeout: int = 10):
+    def __init__(self, timeout: int = 10, encoding: str = 'utf-8'):
         """Initialize a client.
 
         Args:
             timeout (int): Socket timeout
+            encoding (str): Encoding for packets. Defaults to 'utf-8'
         """
         self.timeout = timeout
+        self.encoding = encoding
 
     def _open_socket(self) -> socket.socket:
         """Open a `socket.socket`.
@@ -122,39 +126,36 @@ class Gopher:
         self,
         path: str,
         query: Union[str, ByteString, None] = None,
-        encoding: str = 'utf-8',
     ) -> bytes:
         """Prepare a payload.
 
         Args:
             path (str): Path
             query (Union[str, ByteString, None]): Query
-            encoding (str): encoding
 
         Returns:
             bytes
         """
         if isinstance(query, str):
-            query = bytes(urllib.parse.quote(query, safe=''), encoding)
+            query = bytes(urllib.parse.quote(query, safe=''), self.encoding)
         elif query is None:
             query = b''
 
-        path = bytes(path, encoding)
+        path = bytes(path, self.encoding)
         return b''.join((path, b'?', query, const.EOL))
 
-    def parse_response(self, resp: ByteString, encoding: str = 'utf-8') -> Union[list[Item], list, ByteString]:
+    def parse_response(self, resp: ByteString) -> Union[list[Item], list, ByteString]:
         """Parse the server response.
 
         Args:
             resp (ByteString): Response
-            encoding (str): Server encoding
 
         Returns:
             Union[list[Item], list, ByteString]
         """
         pretty_resp = []
         for item in resp.split(const.EOL):
-            item = Item.parse(self, item, encoding)
+            item = Item.parse(self, item, self.encoding)
             if not item:
                 continue
 
@@ -163,7 +164,7 @@ class Gopher:
 
             if item.raw_type == 'i' and pretty_resp:
                 if pretty_resp[-1].raw_type == 'i':
-                    pretty_resp[-1].merge_messages(item, encoding)
+                    pretty_resp[-1].merge_messages(item, self.encoding)
                     continue
 
             pretty_resp.append(item)
@@ -172,31 +173,27 @@ class Gopher:
 
     def request(
         self,
-        url: tuple[str, str],
+        host: str,
+        path: str = '/',
         port: int = 70,
         query: Union[str, ByteString, None] = None,
-        encoding: str = 'utf-8',
     ) -> Union[list[Item], list, ByteString]:
         """Request an address.
 
         Args:
-            url (tuple[str, str]): Tuple of a host and a path
+            host (str): Host to connect to
+            path (str): Path. Defaults to '/'
             port (int): Port
             query (Union[str, ByteString, None]): Query
 
         Returns:
             Union[list[Item], list, ByteString]
         """
-        if len(url) > 1:
-            host, path = url
-        else:
-            host, path = url[0], '/'
-
         sock = self._open_socket()
         with sock:
             socket.timeout(self.timeout)
             sock.connect((host, port))
-            payload = self._prepare_payload(path, query, encoding)
+            payload = self._prepare_payload(path, query)
             sock.sendall(payload)
 
             resp = bytearray()

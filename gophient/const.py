@@ -3,7 +3,7 @@
 EOL = b'\r\n'
 SEPARATOR = '\t'
 TYPES = {
-    # General (Gopher0)
+    # General
     '0': 'Text file',
     '1': 'Sub-menu',
     '2': 'CCSO Nameserver',

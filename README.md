@@ -1,18 +1,15 @@
 # Gophient
-[![repo style: chr](https://img.shields.io/badge/repo%20style-chr-blueviolet?logo=github&style=flat-square)](https://github.com/arichr/python-template)
-![License](https://shields.io/github/license/arichr/gophient?style=flat-square)
-![Downloads counter](https://shields.io/github/downloads/arichr/gophient/total?style=flat-square)
-![Stars counter](https://shields.io/github/stars/arichr/gophient?style=flat-square)
+[![repo style: chr](https://img.shields.io/badge/repo%20style-chr-blueviolet?logo=github&style=flat)](https://github.com/arichr/python-template)
+[![PyPI](https://img.shields.io/pypi/v/gophient?style=flat&logo=python&logoColor=white)](https://pypi.org/project/gophient/)
+[![Maintainability](https://api.codeclimate.com/v1/badges/d83cf869ea9fa8d05a6f/maintainability)](https://codeclimate.com/github/arichr/gophient/maintainability)
+![Vulnerabilities](https://img.shields.io/snyk/vulnerabilities/github/arichr/yakusubot?style=flat&logo=snyk)
 
-Gophient is a library for connecting to Gopher servers. By using it you can:
+Gophient is client library for the Gopherspace. It doesn't require any dependencies and is easy to use.
+
+## Features
  * Browse the Gopherspace
  * Follow links
  * Download content
-
-## Features
- * Light
- * Easy to use
- * No dependecies
 
 ## Examples
 ### Get weather from Floodgap
@@ -40,6 +37,3 @@ apk = client.request('gopher.floodgap.com', 'overbite/files/OverbiteAndroid025.a
 with open('app.apk', 'wb') as apk_file:
   apk_file.write(apk)
 ```
-
-## License
-Licensed by MIT.
