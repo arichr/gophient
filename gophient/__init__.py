@@ -1,9 +1,10 @@
-"""gophient - Python library for connection to Gopher servers."""
-from gophient import const, types
+"""gophient - Client library for the Gopherspace."""
+from gophient import const, exc, types
 from gophient.types import Gopher
 
 __all__ = (
     'const',
+    'exc',
     'types',
     'Gopher',
 )

@@ -1,9 +1,11 @@
-"""Exceptions for gophient."""
+"""gophient.exc - Exceptions for gophient."""
 
-class GopherException(Exception):
+
+class GopherError(Exception):
     """Main class for all `gophient` exceptions."""
 
-class TypeMismatch(GopherException):
+
+class TypeMismatchError(GopherError):
     """Items' types mismatch."""
 
     def __init__(self, got: str, expected: str):
@@ -32,4 +34,4 @@ class TypeMismatch(GopherException):
         Returns:
             str
         """
-        return f'<TypeMismatch message={self.message!r}>'
+        return f'<TypeMismatchError message={self.message!r}>'
