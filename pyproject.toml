@@ -14,6 +14,20 @@ pylint = "^2.14.5"
 portray = "^1.7.0"
 pytest = "^7.1.2"
 
+[[tool.portray.mkdocs.nav]]
+Home = "README.md"
+
+[[tool.portray.mkdocs.nav]]
+    [[tool.portray.mkdocs.nav."Quick Start"]]
+    "1. Installation" = "docs/quick_start/1_-_Installation.md"
+
+    [[tool.portray.mkdocs.nav."Quick Start"]]
+    "2. API" = "docs/quick_start/2_-_API.md"
+
+[tool.portray.mkdocs.theme]
+name = "material"
+palette = {primary = "green", accent = "orange"}
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
