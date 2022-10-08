@@ -1,10 +1,8 @@
 """gophient.types - Types for gophient."""
-from __future__ import annotations
-
 import socket
 import urllib.parse
-from dataclasses import dataclass
-from typing import ByteString, Union
+from dataclasses import dataclass, field
+from typing import ByteString, List, Union
 
 from gophient import const, exc
 
@@ -13,22 +11,21 @@ from gophient import const, exc
 class Item:
     """Line of a server response."""
 
-    _client: 'Gopher' = None
-    raw_type: str = ''
-    pretty_type: str = ''
-    desc: str = ''
-    path: str = ''
-    host: str = ''
+    raw_type: str = field(compare=False, repr=False)
+    pretty_type: str = field(compare=False)
     port: int = 70
+    host: str = ''
+    path: str = ''
+    desc: str = ''
+    _client: 'Gopher' = None
 
     @classmethod
-    def parse(cls, client: Gopher, raw: ByteString, encoding: str = 'utf-8') -> Union[Item, None]:
+    def parse(cls, client: 'Gopher', raw: ByteString) -> Union['Item', None]:
         """Parse a raw `ByteString`.
 
         Args:
             client (Gopher): Related client
             raw (ByteString): Data to parse
-            encoding (str): Server encoding
 
         Returns:
             Union[Item, None]
@@ -37,7 +34,7 @@ class Item:
             return None  # Optional part of the specification
 
         try:
-            raw = raw.decode(encoding)
+            raw = raw.decode(client.encoding)
             parts = raw[1:].split(const.SEPARATOR)
             if len(parts) < 4:
                 raise ValueError('The server returned a file or a broken response.')
@@ -57,31 +54,27 @@ class Item:
             port=int(parts[3]),
         )
 
-    def merge_messages(self, item: Item, encoding: str = 'utf-8') -> None:
+    def merge_messages(self, item: 'Item') -> None:
         """Merge two informational messages.
 
         Args:
             item (Item): Item
-            encoding (str): Encoding for CRLF sequence
 
         Raises:
             TypeMismatchError: Can't merge items with wrong types
         """
         if self.raw_type == 'i' and item.raw_type == 'i':
-            self.desc += const.EOL.decode(encoding) + item.desc
+            self.desc += const.EOL.decode(self._client.encoding) + item.desc
         else:
             raise exc.TypeMismatchError(item.pretty_type, self.pretty_type)
 
-    def follow(self, encoding: str = 'utf-8') -> Union[list[Item], list, ByteString]:
+    def follow(self) -> Union[List['Item'], list, ByteString]:
         """Follow the link.
 
-        Args:
-            encoding (str): Request encoding
-
         Returns:
-            Union[list[Item], list, ByteString]
+            Union[List[Item], list, ByteString]
         """
-        return self._client.request(self.host, self.path, self.port, encoding)
+        return self._client.request(self.host, self.path, self.port, self._client.encoding)
 
     def __str__(self) -> str:
         """Return a string representation of the Item.
@@ -93,12 +86,9 @@ class Item:
             return self.desc
 
         if self.raw_type == 'ꬰ':
-            return 'File'
+            return f'File ({self.path} on {self.host}:{self.port})'
 
-        return (
-            f'{self.desc} ({self.pretty_type}) - '
-            f'{self.path} on {self.host}:{self.port}'
-        )
+        return f'{self.desc} ({self.pretty_type}) - {self.path} on {self.host}:{self.port}'
 
 
 class Gopher:
@@ -109,7 +99,7 @@ class Gopher:
 
         Args:
             timeout (int): Socket timeout
-            encoding (str): Encoding for packets. Defaults to 'utf-8'
+            encoding (str): Encoding for packets. Defaults to `'utf-8'`
         """
         self.timeout = timeout
         self.encoding = encoding
@@ -122,16 +112,12 @@ class Gopher:
         """
         return socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    def _prepare_payload(
-        self,
-        path: str,
-        query: Union[str, ByteString, None] = None,
-    ) -> bytes:
+    def _prepare_payload(self, path: str, query: Union[str, ByteString, None] = None) -> bytes:
         """Prepare a payload.
 
         Args:
             path (str): Path
-            query (Union[str, ByteString, None]): Query
+            query (Union[str, ByteString, None]): Query. Defaults to `None`.
 
         Returns:
             bytes
@@ -144,18 +130,18 @@ class Gopher:
         path = bytes(path, self.encoding)
         return b''.join((path, b'?', query, const.EOL))
 
-    def parse_response(self, resp: ByteString) -> Union[list[Item], list, ByteString]:
+    def parse_response(self, resp: ByteString) -> Union[List[Item], list, ByteString]:
         """Parse the server response.
 
         Args:
             resp (ByteString): Response
 
         Returns:
-            Union[list[Item], list, ByteString]
+            Union[List[Item], list, ByteString]
         """
         pretty_resp = []
         for item in resp.split(const.EOL):
-            item = Item.parse(self, item, self.encoding)
+            item = Item.parse(self, item)
             if not item:
                 continue
 
@@ -164,7 +150,7 @@ class Gopher:
 
             if item.raw_type == 'i' and pretty_resp:
                 if pretty_resp[-1].raw_type == 'i':
-                    pretty_resp[-1].merge_messages(item, self.encoding)
+                    pretty_resp[-1].merge_messages(item)
                     continue
 
             pretty_resp.append(item)
@@ -177,17 +163,17 @@ class Gopher:
         path: str = '/',
         port: int = 70,
         query: Union[str, ByteString, None] = None,
-    ) -> Union[list[Item], list, ByteString]:
+    ) -> Union[List[Item], list, ByteString]:
         """Request an address.
 
         Args:
             host (str): Host to connect to
-            path (str): Path. Defaults to '/'
+            path (str): Path. Defaults to `'/'`
             port (int): Port
             query (Union[str, ByteString, None]): Query
 
         Returns:
-            Union[list[Item], list, ByteString]
+            Union[List[Item], list, ByteString]
         """
         sock = self._open_socket()
         with sock:

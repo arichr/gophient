@@ -32,9 +32,3 @@ ignore-long-lines=
 
 # Maximum number of characters on a single line.
 max-line-length=79
-
-[LOGGING]
-
-# The type of string formatting that logging methods do. `old` means using %
-# formatting, `new` is for `{}` formatting.
-logging-format-style=new

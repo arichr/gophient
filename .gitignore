@@ -11,3 +11,6 @@ venv/
 
 # Text editors, IDEs
 .vscode/
+
+# etc.
+*private*

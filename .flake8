@@ -1,6 +1,7 @@
 [flake8]
 show-source          = true
 docstring-convention = google
+# pylint is not so strict as flake8 (pycodestyle), so max-line-length here is higher.
 max-line-length      = 100
 exclude =
     # Byte-compiled / optimized / DLL files
@@ -8,11 +9,14 @@ exclude =
     *.py[cod],
     *$py.class,
 
+    # CVS
+    .git/,
+
     # Modules' leftovers
     .pytest_cache/,
     .venv/,
-    dist/,
     venv/,
+    dist/,
 
     # Text editors, IDEs
     .vscode/
