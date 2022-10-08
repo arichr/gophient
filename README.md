@@ -6,6 +6,8 @@
 
 Gophient is client library for the Gopherspace. It doesn't require any dependencies and is easy to use.
 
+[![Read documentation](https://img.shields.io/badge/read-documentation-green?style=for-the-badge&logo=python&logoColor=white)](https://arichr.github.io/gophient/)
+
 ## Features
  * Browse the Gopherspace
  * Follow links
