@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gophient"
-version = "1.1.0"
+version = "1.1.1"
 description = "Client library for the Gopherspace"
 license = "MIT"
 authors = ["Arisu Wonderland <arisuchr@riseup.net>"]
