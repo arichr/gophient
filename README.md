@@ -2,16 +2,16 @@
 [![repo style: chr](https://img.shields.io/badge/repo%20style-chr-blueviolet?logo=github&style=flat)](https://github.com/arichr/python-template)
 [![PyPI](https://img.shields.io/pypi/v/gophient?style=flat&logo=python&logoColor=white)](https://pypi.org/project/gophient/)
 [![Maintainability](https://api.codeclimate.com/v1/badges/d83cf869ea9fa8d05a6f/maintainability)](https://codeclimate.com/github/arichr/gophient/maintainability)
-![Vulnerabilities](https://img.shields.io/snyk/vulnerabilities/github/arichr/yakusubot?style=flat&logo=snyk)
 
 Gophient is client library for the Gopherspace. It doesn't require any dependencies and is easy to use.
 
-[![Read documentation](https://img.shields.io/badge/read-documentation-green?style=for-the-badge&logo=python&logoColor=white)](https://arichr.github.io/gophient/)
+**Features:**
 
-## Features
- * Browse the Gopherspace
- * Follow links
- * Download content
+* Browse the Gopherspace
+* Follow links
+* Download content
+
+[![Read documentation](https://img.shields.io/badge/read-documentation-green?style=for-the-badge&logo=python&logoColor=white)](https://arichr.github.io/gophient/)
 
 ## Examples
 ### Get weather from Floodgap

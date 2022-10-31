@@ -2,8 +2,34 @@
 name = "gophient"
 version = "1.1.0"
 description = "Client library for the Gopherspace"
-authors = ["Arisu W. <arisuchr@riseup.net>"]
 license = "MIT"
+authors = ["Arisu Wonderland <arisuchr@riseup.net>"]
+readme = "README.md"
+repository = "https://github.com/arichr/gophient"
+documentation = "https://arichr.github.io/gophient/"
+keywords = ["gopher", "gophient", "client", "python3", "gopher-client", "gopherspace", "module", "library"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Communications",
+    "Topic :: Internet",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+include = [
+    {path = "tests", format = "sdist"},
+
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -13,6 +39,9 @@ wemake-python-styleguide = "^0.16.1"
 pylint = "^2.14.5"
 portray = "^1.7.0"
 pytest = "^7.1.2"
+
+[tool.isort]
+line_length = 100
 
 [[tool.portray.mkdocs.nav]]
 Home = "README.md"
