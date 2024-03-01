@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gophient"
-version = "1.1.1"
+version = "2.0.0"
 description = "Client library for the Gopherspace"
 license = "MIT"
 authors = ["Arisu Wonderland <arisuchr@riseup.net>"]
@@ -21,6 +21,9 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Communications",
     "Topic :: Internet",
     "Topic :: Software Development :: Libraries",
