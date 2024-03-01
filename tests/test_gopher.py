@@ -1,5 +1,5 @@
 """Tests for gophient."""
-import gophient  # pylint: disable=import-error
+import gophient
 
 
 def test_connectivity():
