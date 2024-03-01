@@ -27,7 +27,7 @@ exclude = [
 ]
 fix = false
 indent-width = 4
-line-length = 80
+line-length = 100
 output-format = "concise"
 # output-format = "full"
 preview = true

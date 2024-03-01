@@ -1,26 +1,36 @@
-"""gophient.types - Types for gophient."""
+"""`gophient.types` - Types that implement the main logic."""
 import socket
 import urllib.parse
 from dataclasses import dataclass, field
-from typing import ByteString, List, Union
+from typing import TYPE_CHECKING, List, Union
 
 from gophient import const, exc
+
+if TYPE_CHECKING:
+    RequestType = Union[bytes, bytearray, str]
+    ResponseType = Union[bytes, bytearray]
 
 
 @dataclass
 class Item:
-    """Line of a server response."""
+    """Item of a server response."""
 
-    raw_type: str = field(compare=False, repr=False)
-    pretty_type: str = field(compare=False)
+    _client: 'Gopher' = field(repr=False)
+    raw_type: str = field(repr=False)
+    """The item type. Possible values are `const.TYPES` keys."""
+    pretty_type: str = field(hash=False, compare=False)
+    """The human-readable item type. Possible values are `const.TYPES` values."""
     port: int = 70
+    """The port of a server that this item is pointing to."""
     host: str = ''
+    """The IP address or the domain name of a server that this item is pointing to."""
     path: str = ''
+    """The path on a server that this item is pointing to."""
     desc: str = ''
-    _client: 'Gopher' = None
+    """The item description."""
 
     @classmethod
-    def parse(cls, client: 'Gopher', raw: ByteString) -> Union['Item', None]:
+    def parse(cls, client: 'Gopher', raw: 'ResponseType') -> Union['Item', None]:
         """Parse a raw `ByteString`.
 
         Args:
@@ -30,24 +40,22 @@ class Item:
         Returns:
             Union[Item, None]
         """
-        if raw in (b'.', b''):
+        if raw == b'.' or raw == b'':
             return None  # Optional part of the specification
 
         try:
-            raw = raw.decode(client.encoding)
-            parts = raw[1:].split(const.SEPARATOR)
+            encoded = raw.decode(client.encoding)
+            parts = encoded[1:].split(const.SEPARATOR)
             if len(parts) < 4:
-                raise ValueError('The server returned a file or a broken response.')
-        except ValueError:
-            return cls(
-                raw_type='ꬰ',  # Broken type to distinguish "unparsable" items
-                pretty_type=const.TYPES.get('ꬰ', 'Unknown'),
-            )
+                # Received raw data
+                raise ValueError
+        except ValueError:  # UnicodeDecodeError is a subclass of ValueError
+            return cls(client, '', const.TYPES.get('', 'Unknown'))
 
         return cls(
             _client=client,
-            raw_type=raw[0],
-            pretty_type=const.TYPES.get(raw[0], 'Unknown'),
+            raw_type=encoded[0],
+            pretty_type=const.TYPES.get(encoded[0], 'Unknown'),
             desc=parts[0],
             path=parts[1],
             host=parts[2],
@@ -68,76 +76,67 @@ class Item:
         else:
             raise exc.TypeMismatchError(item.pretty_type, self.pretty_type)
 
-    def follow(self) -> Union[List['Item'], list, ByteString]:
+    def follow(self) -> Union[List['Item'], bytes]:
         """Follow the link.
 
         Returns:
-            Union[List[Item], list, ByteString]
+            A list of `Item` or a server response
         """
         return self._client.request(self.host, self.path, self.port, self._client.encoding)
 
     def __str__(self) -> str:
-        """Return a string representation of the Item.
+        """Return a string representation of `Item`.
 
         Returns:
             str
         """
         if self.raw_type == 'i':
             return self.desc
-
-        if self.raw_type == 'ꬰ':
-            return f'File ({self.path} on {self.host}:{self.port})'
+        if self.raw_type == '':
+            return f'File {self.path} on {self.host}:{self.port}'
 
         return f'{self.desc} ({self.pretty_type}) - {self.path} on {self.host}:{self.port}'
 
 
 class Gopher:
-    """Class for Gopher client."""
+    """Gopher client."""
 
     def __init__(self, timeout: int = 10, encoding: str = 'utf-8'):
         """Initialize a client.
 
         Args:
             timeout (int): Socket timeout
-            encoding (str): Encoding for packets. Defaults to `'utf-8'`
+            encoding (str): Packet encoding
         """
         self.timeout = timeout
+        """Socket timeout. Defaults to `10`."""
         self.encoding = encoding
+        """Packet encoding. Defaults to `'utf-8'`."""
 
-    def _open_socket(self) -> socket.socket:
-        """Open a `socket.socket`.
-
-        Returns:
-            socket.socket
-        """
-        return socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    def _prepare_payload(self, path: str, query: Union[str, ByteString, None] = None) -> bytes:
+    def _prepare_payload(self, path: str, query: 'RequestType') -> bytes:
         """Prepare a payload.
 
         Args:
             path (str): Path
-            query (Union[str, ByteString, None]): Query. Defaults to `None`.
+            query (RequestType): Query
 
         Returns:
-            bytes
+            Payload
         """
-        if isinstance(query, str):
-            query = bytes(urllib.parse.quote(query, safe=''), self.encoding)
-        elif query is None:
-            query = b''
+        enc_query = b''
+        if query != '' and isinstance(query, str):
+            enc_query = urllib.parse.quote(query, safe='').encode(self.encoding)
 
-        path = bytes(path, self.encoding)
-        return b''.join((path, b'?', query, const.EOL))
+        return path.encode(self.encoding) + b'?' + enc_query + const.EOL
 
-    def parse_response(self, resp: ByteString) -> Union[List[Item], list, ByteString]:
+    def parse_response(self, resp: 'ResponseType') -> Union[List[Item], 'ResponseType']:
         """Parse the server response.
 
         Args:
-            resp (ByteString): Response
+            resp (ResponseType): Server response
 
         Returns:
-            Union[List[Item], list, ByteString]
+            A list of `Item` (can be empty) or `resp`
         """
         pretty_resp = []
         for item in resp.split(const.EOL):
@@ -145,7 +144,8 @@ class Gopher:
             if not item:
                 continue
 
-            if item.raw_type == 'ꬰ':
+            if item.raw_type == '':
+                # Received raw data
                 return resp
 
             if item.raw_type == 'i' and pretty_resp:
@@ -158,34 +158,30 @@ class Gopher:
         return pretty_resp
 
     def request(
-        self,
-        host: str,
-        path: str = '/',
-        port: int = 70,
-        query: Union[str, ByteString, None] = None,
-    ) -> Union[List[Item], list, ByteString]:
+        self, host: str, path: str = '/', port: int = 70, query: 'RequestType' = '',
+    ) -> Union[list[Item], bytes]:
         """Request an address.
 
         Args:
-            host (str): Host to connect to
-            path (str): Path. Defaults to `'/'`
-            port (int): Port
-            query (Union[str, ByteString, None]): Query
+            host (str): Server domain or IP address
+            path (str): Request path
+            port (int): Server port
+            query (RequestType): Query
 
         Returns:
-            Union[List[Item], list, ByteString]
+            A list of `Item` (can be empty) or a server response
         """
-        sock = self._open_socket()
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         with sock:
             socket.timeout(self.timeout)
             sock.connect((host, port))
             payload = self._prepare_payload(path, query)
             sock.sendall(payload)
 
-            resp = bytearray()
-            packet = b'packet'
+            resp = bytes()
+            packet = b'init'
             while packet:
                 packet = sock.recv(1024)
-                resp.extend(packet)
+                resp += packet
 
         return self.parse_response(resp)

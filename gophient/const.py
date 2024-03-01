@@ -25,6 +25,6 @@ TYPES = {
     'h': 'HTML file',
     'i': 'Informational message',
     's': 'Sound file',  # Especially WAV files
-    # gophient (never use these types to avoid wrong displaying)
-    'ꬰ': 'File',
+    # gophient
+    '': 'File',
 }
