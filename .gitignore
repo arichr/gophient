@@ -12,6 +12,7 @@ dist/
 venv/
 
 # Build artifacts
+site/
 build/
 
 # Text editors, IDEs

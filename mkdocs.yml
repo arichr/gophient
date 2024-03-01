@@ -1,0 +1,76 @@
+site_name: Gophient
+site_url: https://arichr.github.io/gophient/
+repo_name: arichr/gophient
+repo_url: https://github.com/arichr/gophient
+edit_uri: blob/dev/docs/
+site_description: Python library to browse the Gopherspace
+site_author: Arisu Wonderland <arisuchr@riseup.net>
+copyright: Copyright &copy; 2021-2024 Arisu Wonderland
+nav:
+  - Home: README.md
+  - Installation: 1_-_Installation.md
+  - Getting started: 2_-_Getting_started.md
+  - API Reference: api.md # TODO:
+theme:
+  name: material
+  font: false
+  icon:
+    repo: fontawesome/brands/github-alt
+  palette:
+    scheme: slate
+    primary: green
+    accent: orange
+  features:
+    - navigation.sections
+    - navigation.path
+    - navigation.prune
+    - toc.integrate
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.action.edit
+    - content.code.copy
+    - content.code.annotate
+extra_css:
+  - css/extra.css
+use_directory_urls: true
+plugins:
+  - search
+  - offline
+  - autorefs
+  - git-authors
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            group_by_category: true
+            show_category_heading: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            show_submodules: true
+            merge_init_into_class: true
+            show_if_no_docstring: true
+            line_length: 80
+            separate_signature: true
+            signature_crossrefs: true
+markdown_extensions:
+  - abbr
+  - footnotes
+  - tables
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.magiclink
+  - pymdownx.keys
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true

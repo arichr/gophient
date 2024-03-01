@@ -1,20 +1,33 @@
-# Gophient
-[![repo style: chr](https://img.shields.io/badge/repo%20style-chr-blueviolet?logo=github&style=flat)](https://github.com/arichr/python-template)
-[![PyPI](https://img.shields.io/pypi/v/gophient?style=flat&logo=python&logoColor=white)](https://pypi.org/project/gophient/)
-[![Maintainability](https://api.codeclimate.com/v1/badges/d83cf869ea9fa8d05a6f/maintainability)](https://codeclimate.com/github/arichr/gophient/maintainability)
-
-Gophient is client library for the Gopherspace. It doesn't require any dependencies and is easy to use.
+<p align="center">
+    <h1 align="center">Gophient</h1>
+    <p align="center">
+    <a href="https://pypi.org/project/gophient/"><img alt="PyPI" src="https://img.shields.io/pypi/v/gophient?style=flat&logo=python&logoColor=white"></a>
+    <a href="https://codeclimate.com/github/arichr/gophient/maintainability"><img alt="Maintainability" src="https://api.codeclimate.com/v1/badges/d83cf869ea9fa8d05a6f/maintainability"></a>
+</p>
+    <p align="center">Python library to browse the Gopherspace</p>
+    <p align="center">
+        <a href="https://arichr.github.io/gophient/"><img alt="Read documentation" src="https://img.shields.io/badge/read-documentation-green?style=for-the-badge&logo=python&logoColor=white"></a>
+    </p>
+</p>
 
 **Features:**
 
-* Browse the Gopherspace
-* Follow links
-* Download content
+* Light
+* Easy to use
+* Comes without dependencies
 
-[![Read documentation](https://img.shields.io/badge/read-documentation-green?style=for-the-badge&logo=python&logoColor=white)](https://arichr.github.io/gophient/)
+## Getting started
+
+1. Install Gophient:
+```console
+pip install gophient
+```
+2. Create a `gophient.Gopher` instance and make requests ([see examples below](#examples))
 
 ## Examples
+
 ### Get weather from Floodgap
+
 ```python
 import gophient
 
@@ -22,7 +35,9 @@ client = gophient.Gopher()
 weather = client.request('gopher.floodgap.com', 'groundhog/ws')
 print(weather)
 ```
-### Search by Veronica
+
+### Search on Veronica
+
 ```python
 import gophient
 
@@ -30,7 +45,9 @@ client = gophient.Gopher()
 results = client.request('gopher.floodgap.com', 'v2/vs', query='plan 9')
 print(results)
 ```
+
 ### Download files
+
 ```python
 import gophient
 

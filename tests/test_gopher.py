@@ -9,32 +9,32 @@ def test_connectivity():
     assert resp
 
 
-def test_link_follow():
+def test_link_following():
     """Test link following."""
     client = gophient.Gopher()
     resp = client.request('gopher.floodgap.com')
-    # resp[0] can be an informational message, but since we combine
-    # the first of them, resp[1] is always something else.
+    # We combine informational messages if they are placed together.
+    # In that case resp[1] is guranteed to be a link.
     new_resp = resp[1].follow()
-    assert resp and resp != new_resp
+    assert resp and new_resp and resp != new_resp
 
 
-def test_file_download():
-    """Test file download."""
+def test_file_downloading():
+    """Test file downloading."""
     client = gophient.Gopher()
     resp = client.request('gopher.floodgap.com', 'recent')
     assert isinstance(resp, bytearray)
 
 
 def test_items_type():
-    """Test items type."""
+    """Test items' type."""
     client = gophient.Gopher()
     resp = client.request('gopher.floodgap.com')
     assert resp[0].pretty_type == 'Informational message'
 
 
-def test_veronica_search():
-    """Test Veronica search."""
+def test_searching():
+    """Test searching on Veronica."""
     client = gophient.Gopher()
     resp = client.request('gopher.floodgap.com', 'v2/vs', query='cat')
     assert '?cat forward=' in resp[-1].path
