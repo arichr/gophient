@@ -28,20 +28,15 @@ classifiers = [
 ]
 include = [
     {path = "tests", format = "sdist"},
-
 ]
 
 [tool.poetry.dependencies]
 python = "^3.8"
 
-[tool.poetry.dev-dependencies]
-wemake-python-styleguide = "^0.16.1"
-pylint = "^2.14.5"
-portray = "^1.7.0"
-pytest = "^7.1.2"
-
-[tool.isort]
-line_length = 100
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.3.0"
+pytest = "^8.0.2"
+portray = "^1.8.0"
 
 [[tool.portray.mkdocs.nav]]
 Home = "README.md"

@@ -1,0 +1,86 @@
+# As of 0.2.2, Ruff does not exclude files and folders from .gitignore.
+# Even if it was configured to do so.
+#
+# FIXME: Check if this issue is fixed
+exclude = [
+    # Byte-compiled / optimized / DLL files
+    "__pycache__/",
+    "*.py[cod]",
+    "*$py.class",
+
+    # Modules' leftovers
+    ".pytest_cache/",
+    ".ruff_cache/",
+    "node_modules/",
+    ".venv/",
+    "dist/",
+    "venv/",
+
+    # Build artifacts
+    "build/",
+
+    # Text editors, IDEs
+    ".vscode/",
+
+    # etc.
+    "*private*"
+]
+fix = false
+indent-width = 4
+line-length = 80
+output-format = "concise"
+# output-format = "full"
+preview = true
+respect-gitignore = true
+target-version = "py38"
+
+[format]
+docstring-code-format = true
+docstring-code-line-length = "dynamic"
+indent-style = "space"
+line-ending = "lf"
+quote-style = "single"
+skip-magic-trailing-comma = false
+
+[lint]
+preview = true
+allowed-confusables = []
+dummy-variable-rgx = "^_[a-zA-Z0-9_]+$"
+explicit-preview-rules = false
+# 'external' is left empty on purpose. This way we can adapt existing code to Ruff.
+external = []
+ignore = ["S404", "S603", "D211", "D213"]
+ignore-init-module-imports = false
+select = ["E", "W", "F", "B", "S", "C", "D", "I", "T100"]
+task-tags = ["TODO", "FIXME", "BUG"]
+
+[lint.flake8-builtins]
+builtins-ignorelist = ["six.moves", "past.builtins", "future.builtins", "builtins", "io"]
+
+[lint.flake8-pytest-style]
+parametrize-names-type = "tuple"
+
+[lint.flake8-quotes]
+docstring-quotes = "double"
+inline-quotes = "double"
+multiline-quotes = "double"
+
+[lint.flake8-type-checking]
+quote-annotations = true
+strict = true
+
+[lint.isort]
+section-order = ["future", "standard-library", "first-party", "local-folder", "third-party"]
+
+[lint.pycodestyle]
+max-doc-length = 100
+
+[lint.pydocstyle]
+convention = "google"
+
+[lint.pyupgrade]
+keep-runtime-typing = false
+
+[lint.per-file-ignores]
+# Assert statements can be used in tests.
+"*test*.py" = ["S101"]
