@@ -1,8 +1,8 @@
-"""gophient.exc - Exceptions for gophient."""
+"""`gophient.exc` - Client exceptions."""
 
 
 class GopherError(Exception):
-    """Main class for all `gophient` exceptions."""
+    """Base exception for `gophient`."""
 
 
 class TypeMismatchError(GopherError):

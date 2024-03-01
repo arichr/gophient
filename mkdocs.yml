@@ -10,7 +10,7 @@ nav:
   - Home: README.md
   - Installation: 1_-_Installation.md
   - Getting started: 2_-_Getting_started.md
-  - API Reference: api.md # TODO:
+  - API Reference: api.md
 theme:
   name: material
   font: false

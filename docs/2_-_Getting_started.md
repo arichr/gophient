@@ -6,6 +6,4 @@ import gophient
 client = gophient.Gopher()
 ```
 
-> TODO:
-
 For a full definition of the API see the [API reference documentation](api.md).
