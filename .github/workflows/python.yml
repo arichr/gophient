@@ -18,13 +18,6 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
-
       - name: Load cached venv
         id: cached-poetry-dependencies
         uses: actions/cache@v3
@@ -32,9 +25,17 @@ jobs:
           path: .venv
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
+      - name: Install Poetry
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
+        run: poetry install --with=ci --without=docs --no-interaction --no-root
 
   test:
     runs-on: ubuntu-latest
@@ -58,15 +59,45 @@ jobs:
           path: .venv
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
-      - name: Testing
-        run: |
-          source .venv/bin/activate
-          pytest
-
       - name: Linting
         run: |
           source .venv/bin/activate
           ruff check . --output-format=full
+
+  coverage:
+    runs-on: ubuntu-latest
+    needs: test
+    concurrency:
+      group: "coverage"
+      cancel-in-progress: true
+    env:
+      CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Testing
+        run: |
+          source .venv/bin/activate
+          MODULE_DIR=$(dirname "$(ls */__init__.py)")
+          coverage run --source "$MODULE_DIR" -m pytest
+          coverage report --skip-covered --fail-under=80
+          coverage xml --ignore-errors
+
+      - name: Publish code coverage
+        if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' }}
+        uses: paambaati/codeclimate-action@v5.0.0
+        env:
+          CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
+        with:
+          coverageLocations: coverage.xml:coverage.py
+
   build:
     runs-on: ubuntu-latest
     needs: test

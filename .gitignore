@@ -11,6 +11,10 @@ node_modules/
 dist/
 venv/
 
+# Code coverage
+.coverage
+coverage.xml
+
 # Build artifacts
 site/
 build/
